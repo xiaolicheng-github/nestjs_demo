@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 import { User } from '../user/user.entity';
 import { EmailService } from './email.service';
 import { AuthService } from './auth.service';
@@ -12,9 +13,13 @@ import { JwtStrategy } from './jwt.strategy';
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'nestjs-demo-secret-key-2024',
-      signOptions: { expiresIn: '7d' }, // Token 有效期 7 天
+    // 使用 registerAsync 确保 secret 在运行时动态读取，避免装饰器求值时序问题
+    JwtModule.registerAsync({
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET', 'nestjs-demo-secret-key-2024'),
+        signOptions: { expiresIn: '7d' },
+      }),
+      inject: [ConfigService],
     }),
     TypeOrmModule.forFeature([User]),
     // IP限流配置

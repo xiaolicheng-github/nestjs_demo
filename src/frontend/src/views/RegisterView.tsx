@@ -15,40 +15,43 @@ export default defineComponent({
     const countdown = ref(0);
 
     /** 发送验证码 */
-    async function handleSendCode() {
+    function handleSendCode() {
       if (!form.email) {
         errorMsg.value = '请先输入邮箱';
         return;
       }
       errorMsg.value = '';
-      try {
-        await sendCodeApi(form.email);
-        // 开始倒计时
-        countdown.value = 60;
-        const timer = setInterval(() => {
-          countdown.value--;
-          if (countdown.value <= 0) clearInterval(timer);
-        }, 1000);
-      } catch (err: any) {
-        errorMsg.value = err.message || '发送失败';
-      }
+      sendCodeApi(form.email)
+        .then(() => {
+          // 开始倒计时
+          countdown.value = 60;
+          const timer = setInterval(() => {
+            countdown.value--;
+            if (countdown.value <= 0) clearInterval(timer);
+          }, 1000);
+        })
+        .catch((err: Error) => {
+          errorMsg.value = err.message;
+        });
     }
 
     /** 注册提交 */
-    async function handleRegister(e: Event) {
+    function handleRegister(e: Event) {
       e.preventDefault();
       if (!form.name || !form.email || !form.code || !form.password) return;
       loading.value = true;
       errorMsg.value = '';
-      try {
-        await registerApi(form);
-        alert('注册成功！即将跳转到登录页');
-        router.push('/login');
-      } catch (err: any) {
-        errorMsg.value = err.message || '注册失败';
-      } finally {
-        loading.value = false;
-      }
+      registerApi(form)
+        .then(() => {
+          alert('注册成功！即将跳转到登录页');
+          router.push('/login');
+        })
+        .catch((err: Error) => {
+          errorMsg.value = err.message;
+        })
+        .finally(() => {
+          loading.value = false;
+        });
     }
 
     /** 跳转登录 */

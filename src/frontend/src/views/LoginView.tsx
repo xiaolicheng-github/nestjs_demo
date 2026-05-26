@@ -16,20 +16,23 @@ export default defineComponent({
     const errorMsg = ref('');
 
     /** 处理登录 */
-    async function handleLogin(e: Event) {
+    function handleLogin(e: Event) {
       e.preventDefault();
       if (!form.email || !form.password) return;
       loading.value = true;
       errorMsg.value = '';
-      try {
-        await userStore.login(form.email, form.password);
-        const redirect = (route.query.redirect as string) || '/';
-        router.push(redirect);
-      } catch (err: any) {
-        errorMsg.value = err.message || '登录失败，请重试';
-      } finally {
-        loading.value = false;
-      }
+      userStore
+        .login(form.email, form.password)
+        .then(() => {
+          const redirect = (route.query.redirect as string) || '/';
+          router.push(redirect);
+        })
+        .catch((err: Error) => {
+          errorMsg.value = err.message;
+        })
+        .finally(() => {
+          loading.value = false;
+        });
       // 显式返回 false 阻止表单默认提交刷新页面
       return false;
     }

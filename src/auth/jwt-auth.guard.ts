@@ -26,8 +26,18 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   handleRequest(err: any, user: any, info: any) {
-    if (err || !user) {
-      throw err || new UnauthorizedException('登录已过期，请重新登录');
+    // 优先透传 Strategy 层显式抛出的错误
+    if (err) {
+      throw err;
+    }
+    if (!user) {
+      const message =
+        info?.name === 'JsonWebTokenError'
+          ? `Token 无效 (${info.message})`
+          : info?.name === 'TokenExpiredError'
+            ? 'Token 已过期，请重新登录'
+            : `登录已过期 (${info?.name ?? 'unknown'})`;
+      throw new UnauthorizedException(message);
     }
     return user;
   }

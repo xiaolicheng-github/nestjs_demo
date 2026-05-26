@@ -19,7 +19,7 @@ export default defineComponent({
     const successMsg = ref('');
 
     /** 提交修改密码 */
-    async function handleSubmit(e: Event) {
+    function handleSubmit(e: Event) {
       e.preventDefault();
       errorMsg.value = '';
       successMsg.value = '';
@@ -36,27 +36,29 @@ export default defineComponent({
       }
 
       loading.value = true;
-      try {
-        await changePasswordApi({
-          oldPassword: form.oldPassword,
-          newPassword: form.newPassword,
+      changePasswordApi({
+        oldPassword: form.oldPassword,
+        newPassword: form.newPassword,
+      })
+        .then(() => {
+          successMsg.value = '密码修改成功，即将跳转到登录页...';
+
+          // 清空表单
+          form.oldPassword = '';
+          form.newPassword = '';
+          form.confirmPassword = '';
+
+          // SSO 模式下修改密码后需要重新登录
+          setTimeout(() => {
+            router.push('/login');
+          }, 2000);
+        })
+        .catch((err: Error) => {
+          errorMsg.value = err.message;
+        })
+        .finally(() => {
+          loading.value = false;
         });
-        successMsg.value = '密码修改成功，即将跳转到登录页...';
-
-        // 清空表单
-        form.oldPassword = '';
-        form.newPassword = '';
-        form.confirmPassword = '';
-
-        // SSO 模式下修改密码后需要重新登录
-        setTimeout(() => {
-          router.push('/login');
-        }, 2000);
-      } catch (err: any) {
-        errorMsg.value = err.message || '修改失败，请重试';
-      } finally {
-        loading.value = false;
-      }
       // 阻止表单默认提交刷新页面
       return false;
     }
