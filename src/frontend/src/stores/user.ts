@@ -1,11 +1,18 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { loginApi, getProfileApi } from '@/api/auth';
+import { loginApi, getFullProfileApi } from '@/api/auth';
+
+interface UserProfile {
+  nickname?: string;
+  bio?: string;
+  avatar?: string;
+}
 
 interface UserInfo {
   id: number;
   email: string;
   name: string;
+  profile?: UserProfile;
 }
 
 export const useUserStore = defineStore('user', () => {
@@ -37,7 +44,7 @@ export const useUserStore = defineStore('user', () => {
   /** 刷新用户信息 */
   async function refreshUserInfo() {
     try {
-      const res: any = await getProfileApi();
+      const res: any = await getFullProfileApi();
       user.value = res;
       localStorage.setItem('user', JSON.stringify(res));
     } catch {

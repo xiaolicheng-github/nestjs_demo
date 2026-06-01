@@ -15,7 +15,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private userRepo: Repository<User>,
     private configService: ConfigService,
   ) {
-    const secret = configService.get<string>('JWT_SECRET', 'nestjs-demo-secret-key-2024');
+    const secret = configService.get<string>('app.jwtSecret')!;
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -36,8 +36,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     // 单点登录校验：token中的tv与数据库不一致说明已被新登录挤下线
+    const enableSso = this.configService.get<boolean>('app.enableSso');
     if (
-      this.configService.get<string>('ENABLE_SSO') === 'true' &&
+      enableSso &&
       payload.tv !== undefined &&
       payload.tv !== user.tokenVersion
     ) {

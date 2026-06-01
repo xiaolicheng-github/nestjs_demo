@@ -13,28 +13,29 @@ import { JwtStrategy } from './jwt.strategy';
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    // 使用 registerAsync 确保 secret 在运行时动态读取，避免装饰器求值时序问题
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET', 'nestjs-demo-secret-key-2024'),
-        signOptions: { expiresIn: '7d' },
+        secret: configService.get<string>('app.jwtSecret')!,
+        signOptions: { expiresIn: configService.get<string>('app.jwtExpiresIn', '7d') as any },
       }),
       inject: [ConfigService],
     }),
     TypeOrmModule.forFeature([User]),
-    // IP限流配置
-    ThrottlerModule.forRoot([
-      {
-        name: 'short',
-        ttl: +(process.env.THROTTLE_TTL || 60000),
-        limit: +(process.env.THROTTLE_LIMIT || 100),
-      },
-      {
-        name: 'strict',
-        ttl: +(process.env.STRICT_THROTTLE_TTL || 60000),
-        limit: +(process.env.STRICT_THROTTLE_LIMIT || 10),
-      },
-    ]),
+    ThrottlerModule.forRootAsync({
+      useFactory: (configService: ConfigService) => [
+        {
+          name: 'short',
+          ttl: configService.get<number>('app.throttleTtl', 60000),
+          limit: configService.get<number>('app.throttleLimit', 100),
+        },
+        {
+          name: 'strict',
+          ttl: configService.get<number>('app.strictThrottleTtl', 60000),
+          limit: configService.get<number>('app.strictThrottleLimit', 10),
+        },
+      ],
+      inject: [ConfigService],
+    }),
   ],
   controllers: [AuthController],
   providers: [AuthService, EmailService, JwtStrategy],

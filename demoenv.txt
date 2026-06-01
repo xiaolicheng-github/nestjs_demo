@@ -5,6 +5,9 @@ QQ_EMAIL_AUTH_CODE=xxxx
 # JWT 密钥（生产环境请更换为复杂字符串）
 JWT_SECRET=nestjs-demo-secret-key-2024-change-in-production
 
+# JWT Token 过期时间（格式：数字+单位，如 7d=7天, 24h=24小时, 30m=30分钟）
+JWT_EXPIRES_IN=1d
+
 # 服务端口
 PORT=3000
 

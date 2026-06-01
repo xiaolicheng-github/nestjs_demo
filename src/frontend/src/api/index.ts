@@ -16,7 +16,7 @@ request.interceptors.request.use((config) => {
 });
 
 /** 不需要 401 强制跳转的接口白名单 */
-const AUTH_EXEMPT_URLS = ['/auth/login', '/auth/register', '/auth/send-code', '/auth/change-password'];
+const AUTH_EXEMPT_URLS = ['/auth/login', '/auth/register', '/auth/send-code', '/auth/change-password', '/auth/forgot-password', '/auth/reset-password'];
 
 /** 响应拦截器 - 统一错误处理 */
 request.interceptors.response.use(

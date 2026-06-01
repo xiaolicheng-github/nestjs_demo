@@ -20,8 +20,18 @@ const router = createRouter({
       meta: { guestOnly: true },
     },
     {
+      path: '/forgot-password',
+      component: () => import('@/views/ForgotPasswordView.tsx'),
+      meta: { guestOnly: true },
+    },
+    {
       path: '/change-password',
       component: () => import('@/views/ChangePasswordView.tsx'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/profile',
+      component: () => import('@/views/ProfileView.tsx'),
       meta: { requiresAuth: true },
     },
   ],

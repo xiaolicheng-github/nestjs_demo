@@ -42,12 +42,18 @@ export default defineComponent({
       router.push('/register');
     }
 
+    /** 跳转忘记密码 */
+    function goForgotPassword() {
+      router.push('/forgot-password');
+    }
+
     return {
       form,
       loading,
       errorMsg,
       handleLogin,
       goRegister,
+      goForgotPassword,
     };
   },
   render() {
@@ -94,6 +100,8 @@ export default defineComponent({
           <div class={styles.footer}>
             还没有账号？
             <a onClick={this.goRegister}>立即注册</a>
+            {' · '}
+            <a onClick={this.goForgotPassword}>忘记密码？</a>
           </div>
         </div>
       </div>

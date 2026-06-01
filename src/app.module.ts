@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
+import { AppConfig } from './config/app.config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
@@ -9,8 +10,8 @@ import { CustomThrottlerGuard } from './common/throttler.guard';
 
 @Module({
   imports: [
-    // 加载 .env 文件
-    ConfigModule.forRoot({ isGlobal: true }),
+    // 加载 .env 文件 + 注册集中配置
+    ConfigModule.forRoot({ isGlobal: true, load: [AppConfig] }),
     TypeOrmModule.forRoot({
       type: 'better-sqlite3',
       database: 'data.db',

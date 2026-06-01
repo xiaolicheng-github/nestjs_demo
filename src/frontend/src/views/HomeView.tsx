@@ -20,10 +20,18 @@ export default defineComponent({
       router.push('/change-password');
     }
 
+    /** 跳转个人中心 */
+    function goProfile() {
+      router.push('/profile');
+    }
+
+    userStore.refreshUserInfo();
+
     return {
       userStore,
       handleLogout,
       goChangePassword,
+      goProfile,
     };
   },
   render() {
@@ -31,9 +39,21 @@ export default defineComponent({
       <div class={styles.homePage}>
         {/* 顶部导航 */}
         <header class={styles.navbar}>
-          <div class={styles.navBrand}>NestJS Demo</div>
+          <div class={styles.navBrand}>小月亮观景台</div>
           <div class={styles.navRight}>
-            <span class={styles.userName}>{this.userStore.user?.name}</span>
+            {this.userStore.user?.profile?.avatar ? (
+              <img
+                class={styles.navAvatar}
+                src={this.userStore.user.profile.avatar}
+                alt="头像"
+                onClick={this.goProfile}
+              />
+            ) : (
+              <span class={styles.userName} onClick={this.goProfile}>{this.userStore.user?.name}</span>
+            )}
+            <button class={styles.btnProfile} onClick={this.goProfile}>
+              个人中心
+            </button>
             <button class={styles.btnChangePwd} onClick={this.goChangePassword}>
               修改密码
             </button>

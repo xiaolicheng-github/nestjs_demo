@@ -1,9 +1,10 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
-import { User } from '../user/user.entity';
+import { ConfigService } from '@nestjs/config';
+import { User, UserProfile } from '../user/user.entity';
 import { EmailService } from './email.service';
 
 @Injectable()
@@ -13,6 +14,7 @@ export class AuthService {
     private userRepo: Repository<User>,
     private jwtService: JwtService,
     private emailService: EmailService,
+    private configService: ConfigService,
   ) {}
 
   /** 发送验证码 */
@@ -73,7 +75,7 @@ export class AuthService {
     }
 
     // 单点登录：启用时递增 tokenVersion 使旧 token 失效
-    if (process.env.ENABLE_SSO === 'true') {
+    if (this.configService.get<boolean>('app.enableSso')) {
       await this.userRepo.update(user.id, {
         tokenVersion: user.tokenVersion + 1,
       });
@@ -128,12 +130,108 @@ export class AuthService {
     await this.userRepo.update(userId, { password: hashedPassword });
 
     // 如果启用了单点登录，同时更新 tokenVersion 使用户需重新登录
-    if (process.env.ENABLE_SSO === 'true') {
+    if (this.configService.get<boolean>('app.enableSso')) {
       await this.userRepo.update(userId, {
         tokenVersion: user.tokenVersion + 1,
       });
     }
 
     return { message: '密码修改成功' };
+  }
+
+  /** 发送重置密码验证码（仅已注册用户） */
+  async sendResetCode(email: string) {
+    const user = await this.userRepo.findOneBy({ email });
+    if (!user) {
+      throw new UnauthorizedException('该邮箱未注册');
+    }
+    await this.emailService.sendResetCode(email);
+    return { message: '验证码已发送到您的邮箱' };
+  }
+
+  /** 通过邮箱验证码重置密码 */
+  async resetPassword(email: string, code: string, password: string) {
+    const isValid = this.emailService.verifyResetCode(email, code);
+    if (!isValid) {
+      throw new UnauthorizedException('验证码错误或已过期');
+    }
+
+    const user = await this.userRepo.findOneBy({ email });
+    if (!user) {
+      throw new UnauthorizedException('该邮箱未注册');
+    }
+
+    // 加密新密码并更新
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await this.userRepo.update(user.id, { password: hashedPassword });
+
+    // 如果启用了单点登录，同时更新 tokenVersion 使旧 token 失效
+    if (this.configService.get<boolean>('app.enableSso')) {
+      await this.userRepo.update(user.id, {
+        tokenVersion: user.tokenVersion + 1,
+      });
+    }
+
+    return { message: '密码重置成功，请使用新密码登录' };
+  }
+
+  /** 获取用户完整信息（含 profile） */
+  async getFullProfile(userId: number) {
+    const user = await this.userRepo.findOneBy({ id: userId });
+    if (!user) throw new UnauthorizedException('用户不存在');
+    const { password: _, ...result } = user; // eslint-disable-line @typescript-eslint/no-unused-vars
+    return result;
+  }
+
+  /** 更新个人资料（用户名/昵称/简介/头像） */
+  async updateProfile(
+    userId: number,
+    profileData: Partial<UserProfile> & { name?: string },
+  ) {
+    const user = await this.userRepo.findOneBy({ id: userId });
+    if (!user) throw new UnauthorizedException('用户不存在');
+
+    // 用户名唯一性检查
+    if (profileData.name !== undefined && profileData.name !== user.name) {
+      const existing = await this.userRepo.findOneBy({ name: profileData.name });
+      if (existing) {
+        throw new BadRequestException('该用户名已被占用');
+      }
+    }
+
+    // 处理头像大小限制（≤10KB base64 内容）
+    if (profileData.avatar) {
+      const base64Content = profileData.avatar.split(',')[1];
+      if (!base64Content) {
+        throw new BadRequestException('头像格式无效，请上传有效图片');
+      }
+      const sizeInBytes = Buffer.byteLength(base64Content, 'base64');
+      if (sizeInBytes > 10 * 1024) {
+        throw new BadRequestException(
+          `头像大小 ${Math.round(sizeInBytes / 1024)}KB 超过 10KB 限制，请压缩后重试`,
+        );
+      }
+    }
+
+    // 更新用户名
+    if (profileData.name !== undefined && profileData.name !== user.name) {
+      await this.userRepo.update(userId, { name: profileData.name });
+    }
+
+    // 合并现有 profile 与更新字段
+    const currentProfile: UserProfile = user.profile || {};
+    const updatedProfile: UserProfile = {
+      ...currentProfile,
+      // 只更新传入的字段，undefined 字段不覆盖
+      ...(profileData.nickname !== undefined && { nickname: profileData.nickname }),
+      ...(profileData.bio !== undefined && { bio: profileData.bio }),
+      ...(profileData.avatar !== undefined && { avatar: profileData.avatar }),
+    };
+
+    await this.userRepo.update(userId, { profile: updatedProfile });
+
+    const updatedUser = await this.userRepo.findOneBy({ id: userId });
+    const { password: _, profile, ...basicInfo } = updatedUser!; // eslint-disable-line
+    return { message: '资料更新成功', user: { ...basicInfo, profile } };
   }
 }
