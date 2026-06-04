@@ -1,10 +1,18 @@
+packages:
+  - src/frontend
+
 allowBuilds:
   '@nestjs/core': true
   '@parcel/watcher': true
   better-sqlite3: true
   esbuild: true
-  sqlite3: true
   unrs-resolver: true
   vue-demi: true
-packages:
-  - "src/frontend"
+
+onlyBuiltDependencies:
+  - '@nestjs/core'
+  - '@parcel/watcher'
+  - better-sqlite3
+  - esbuild
+  - unrs-resolver
+  - vue-demi

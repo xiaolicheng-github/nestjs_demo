@@ -1,43 +1,80 @@
-import { defineComponent } from 'vue';
-import { useRouter } from 'vue-router';
+import { defineComponent, computed } from 'vue';
+import { useRouter, useRoute, RouterView } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 import styles from './HomeView.module.scss';
+
+/** 功能菜单项 */
+interface MenuItem {
+  key: string;
+  label: string;
+  icon: string;
+  desc: string;
+}
 
 export default defineComponent({
   name: 'HomeView',
   setup() {
     const router = useRouter();
+    const route = useRoute();
     const userStore = useUserStore();
+
+    /** 当前激活的菜单 key（从路由路径提取） */
+    const activeMenu = computed(() => {
+      // 取路由 path 的最后一段作为菜单 key，如 /ai-prompt → ai-prompt
+      const segments = route.path.split('/').filter(Boolean);
+      return segments[segments.length - 1] || '';
+    });
+
+    /** 从路由配置派生菜单列表 */
+    const menuList = computed<MenuItem[]>(() => {
+      // 获取当前路由的 children 配置
+      const record = route.matched[0];
+      if (!record?.children) return [];
+      return record.children.map((child) => ({
+        key: child.path,
+        label:
+          (child.meta?.label as string) || (child.name as string) || child.path,
+        icon: (child.meta?.icon as string) || '📋',
+        desc: (child.meta?.desc as string) || '',
+      }));
+    });
+
+    /** 切换菜单：通过路由导航 */
+    function switchMenu(key: string) {
+      void router.push(`/${key}`);
+    }
 
     /** 退出登录 */
     function handleLogout() {
       userStore.logout();
-      router.push('/login');
+      void router.push('/login');
     }
 
     /** 跳转修改密码 */
     function goChangePassword() {
-      router.push('/change-password');
+      void router.push('/change-password');
     }
 
     /** 跳转个人中心 */
     function goProfile() {
-      router.push('/profile');
+      void router.push('/profile');
     }
-
-    userStore.refreshUserInfo();
 
     return {
       userStore,
+      activeMenu,
+      menuList,
+      switchMenu,
       handleLogout,
       goChangePassword,
       goProfile,
+      styles,
     };
   },
   render() {
     return (
       <div class={styles.homePage}>
-        {/* 顶部导航 */}
+        {/* 顶部导航栏 */}
         <header class={styles.navbar}>
           <div class={styles.navBrand}>小月亮观景台</div>
           <div class={styles.navRight}>
@@ -49,7 +86,9 @@ export default defineComponent({
                 onClick={this.goProfile}
               />
             ) : (
-              <span class={styles.userName} onClick={this.goProfile}>{this.userStore.user?.name}</span>
+              <span class={styles.userName} onClick={this.goProfile}>
+                {this.userStore.user?.name}
+              </span>
             )}
             <button class={styles.btnProfile} onClick={this.goProfile}>
               个人中心
@@ -63,28 +102,35 @@ export default defineComponent({
           </div>
         </header>
 
-        {/* 主内容 */}
-        <main class={styles.mainContent}>
-          <div class={styles.welcomeCard}>
-            <h2>欢迎回来！</h2>
-            <p class={styles.greeting}>你好，{this.userStore.user?.name} 👋</p>
-            <div class={styles.infoGrid}>
-              <div class={styles.infoItem}>
-                <span class={styles.label}>用户 ID</span>
-                <span class={styles.value}>{this.userStore.user?.id}</span>
-              </div>
-              <div class={styles.infoItem}>
-                <span class={styles.label}>邮箱</span>
-                <span class={styles.value}>{this.userStore.user?.email}</span>
-              </div>
-              <div class={styles.infoItem}>
-                <span class={styles.label}>状态</span>
-                <span class={[styles.value, styles.statusActive].join(' ')}>
-                  已登录 ✅
-                </span>
-              </div>
-            </div>
-          </div>
+        {/* 主体：左侧功能导航 + 右侧内容区 */}
+        <main class={styles.mainLayout}>
+          {/* 左侧功能导航 */}
+          <aside class={styles.sidebar}>
+            <h3 class={styles.sidebarTitle}>功能面板</h3>
+            <nav class={styles.menu}>
+              {this.menuList.map((item) => (
+                <div
+                  key={item.key}
+                  class={[
+                    styles.menuItem,
+                    this.activeMenu === item.key ? styles.menuItemActive : '',
+                  ].join(' ')}
+                  onClick={() => this.switchMenu(item.key)}
+                >
+                  <span class={styles.menuIcon}>{item.icon}</span>
+                  <div class={styles.menuInfo}>
+                    <span class={styles.menuLabel}>{item.label}</span>
+                    <span class={styles.menuDesc}>{item.desc}</span>
+                  </div>
+                </div>
+              ))}
+            </nav>
+          </aside>
+
+          {/* 右侧内容区：使用 RouterView 渲染子路由 */}
+          <section class={styles.contentArea}>
+            <RouterView />
+          </section>
         </main>
       </div>
     );

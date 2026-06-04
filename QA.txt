@@ -1,0 +1,2 @@
+Q: better-sqlite3 连不上sqlite
+A: 因为node升级或者其他原因导致，可以运行pnpm approve-builds better-sqlite3 命令解决

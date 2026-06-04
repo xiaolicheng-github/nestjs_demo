@@ -8,6 +8,15 @@ const router = createRouter({
       path: '/',
       component: () => import('@/views/HomeView.tsx'),
       meta: { requiresAuth: true },
+      redirect: '/ai-prompt',
+      children: [
+        {
+          path: 'ai-prompt',
+          name: 'ai-prompt',
+          component: () => import('@/views/AiPromptGenerator.tsx'),
+          meta: { label: 'AI 提示词生成器', icon: '🤖', desc: '填写条件，自动组装高效 Prompt' },
+        },
+      ],
     },
     {
       path: '/login',
