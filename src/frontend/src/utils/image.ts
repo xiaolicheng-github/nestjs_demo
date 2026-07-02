@@ -1,31 +1,33 @@
 /**
- * 头像压缩工具
- * 使用 browser-image-compression 库实现渐进式压缩
- *
- * 安装依赖：pnpm add browser-image-compression (在 src/frontend 目录下)
+ * 图片压缩工具（博客场景）
+ * 文章内嵌图片使用 base64，过大时自动降低分辨率
+ * 复用 browser-image-compression 库
  */
 import imageCompression from 'browser-image-compression';
 
-const MAX_SIZE_BYTES = 10 * 1024; // 10KB
+/** 博客内单张图片最大 500KB（多张累积 ≤5MB） */
+const BLOG_IMAGE_MAX_BYTES = 500 * 1024;
 
-/** 压缩 File 对象头像至 ≤10KB，返回压缩后的 base64 DataURL */
-export async function compressAvatar(base64DataUrl: string): Promise<string> {
-  const base64Content = base64DataUrl.split(',')[1];
-  if (!base64Content) throw new Error('无效的 base64 格式');
+/**
+ * 压缩博客文章内的 base64 图片
+ * @returns 压缩后的 base64 DataURL，如已在限制内则原样返回
+ */
+export async function compressBlogImage(
+  base64DataUrl: string,
+): Promise<string> {
+  if (!base64DataUrl || !base64DataUrl.includes(',')) return base64DataUrl;
 
-  // 已在限制内则直接返回
-  if (getBase64Size(base64DataUrl) <= MAX_SIZE_BYTES) {
+  // 已在限制内则跳过
+  if (getBase64Size(base64DataUrl) <= BLOG_IMAGE_MAX_BYTES) {
     return base64DataUrl;
   }
 
-  // base64 → File（库需要 File/Blob 输入）
-  const file = dataURLtoFile(base64DataUrl, 'avatar.jpg');
-
-  // 配置压缩选项
+  // base64 → File → 压缩
+  const file = dataURLtoFile(base64DataUrl, `img_${Date.now()}.jpg`);
   const options = {
-    maxSizeMB: MAX_SIZE_BYTES / (1024 * 1024), // 10KB ≈ 0.00977 MB
-    maxWidthOrHeight: 256,       // 头像不需要太大
-    useWebWorker: true,          // 使用 Web Worker 避免阻塞 UI
+    maxSizeMB: BLOG_IMAGE_MAX_BYTES / (1024 * 1024),
+    maxWidthOrHeight: 1920,
+    useWebWorker: true,
     initialQuality: 0.8,
     fileType: 'image/jpeg',
   };
@@ -34,7 +36,8 @@ export async function compressAvatar(base64DataUrl: string): Promise<string> {
     const compressedFile = await imageCompression(file, options);
     return await imageCompression.getDataUrlFromFile(compressedFile);
   } catch (error) {
-    throw new Error(`图片压缩失败: ${(error as Error).message}`);
+    console.warn('博客图片压缩失败，使用原图:', error);
+    return base64DataUrl;
   }
 }
 
@@ -42,7 +45,6 @@ export async function compressAvatar(base64DataUrl: string): Promise<string> {
 export function getBase64Size(base64DataUrl: string): number {
   const content = base64DataUrl.split(',')[1];
   if (!content) return 0;
-  // 浏览器端使用 atob 计算字节长度（兼容性好于 Buffer）
   try {
     return new TextEncoder().encode(atob(content)).byteLength;
   } catch {
@@ -52,7 +54,6 @@ export function getBase64Size(base64DataUrl: string): number {
 
 // ==================== 内部工具 ====================
 
-/** 将 base64 DataURL 转为 File 对象 */
 function dataURLtoFile(dataurl: string, filename: string): File {
   const arr = dataurl.split(',');
   const mimeMatch = arr[0].match(/:(.*?);/);

@@ -1,11 +1,13 @@
 ---
 name: nestjs-demo-changelog
-description: >
+description: This skill tracks the evolution of the nestjs_demo project - new modules, features added, and known issues/gotchas resolved. Use this skill when adding a major feature/module to the project or when encountering/solving tricky problems that should be documented for future reference. Always update this skill after completing significant work on the project.
   This skill tracks the evolution of the nestjs_demo project - new modules,
   features added, and known issues/gotchas resolved. Use this skill when
   adding a major feature/module to the project or when encountering/solving
   tricky problems that should be documented for future reference.
   Always update this skill after completing significant work on the project.
+allowed-tools: 
+disable: false
 ---
 
 # NestJS Demo 项目变更日志 & 知识库

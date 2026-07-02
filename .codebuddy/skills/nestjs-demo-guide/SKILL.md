@@ -1,10 +1,12 @@
 ---
 name: nestjs-demo-guide
-description: >
+description: This skill provides comprehensive project knowledge for the nestjs_demo project, a NestJS 11 + SQLite + Vue full-stack application with JWT authentication and email verification. Use this skill whenever working on code changes, adding features, debugging, or understanding the architecture of this project.
   This skill provides comprehensive project knowledge for the nestjs_demo project,
   a NestJS 11 + SQLite + Vue full-stack application with JWT authentication and
   email verification. Use this skill whenever working on code changes, adding features,
   debugging, or understanding the architecture of this project.
+allowed-tools: 
+disable: false
 ---
 
 # NestJS Demo 项目开发指南

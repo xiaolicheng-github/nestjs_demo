@@ -8,15 +8,40 @@ const router = createRouter({
       path: '/',
       component: () => import('@/views/HomeView.tsx'),
       meta: { requiresAuth: true },
-      redirect: '/ai-prompt',
-      children: [
-        {
-          path: 'ai-prompt',
-          name: 'ai-prompt',
-          component: () => import('@/views/AiPromptGenerator.tsx'),
-          meta: { label: 'AI 提示词生成器', icon: '🤖', desc: '填写条件，自动组装高效 Prompt' },
-        },
-      ],
+    },
+    {
+      path: '/ai-prompt',
+      name: 'ai-prompt',
+      component: () => import('@/views/AiPromptGenerator.tsx'),
+      meta: {
+        requiresAuth: true,
+        label: 'AI 提示词生成器',
+        icon: '🤖',
+        desc: '填写条件，自动组装高效 Prompt',
+      },
+    },
+    {
+      path: '/blog',
+      name: 'blog',
+      component: () => import('@/views/BlogView.tsx'),
+      meta: {
+        requiresAuth: true,
+        label: '个人博客',
+        icon: '🌙',
+        desc: '在月光下记录你的思绪与故事',
+      },
+    },
+    {
+      path: '/blog/edit',
+      name: 'blog-edit',
+      component: () => import('@/components/BlogEditor/index.tsx'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/blog/detail',
+      name: 'blog-detail',
+      component: () => import('@/components/BlogDetail/index.tsx'),
+      meta: { requiresAuth: true },
     },
     {
       path: '/login',

@@ -6,6 +6,35 @@
 
 ## 一、功能变更记录
 
+### 2026-06-05 - 博客模块（Blog Module）
+- **涉及文件**:
+  - 后端：`src/blog/blog.entity.ts`、`blog/dto/index.ts`、`blog/blog.service.ts`、`blog/blog.controller.ts`、`blog/blog.module.ts`、`src/app.module.ts`
+  - 前端：`src/frontend/src/views/BlogView.tsx`、`views/BlogView.module.scss`、`src/frontend/src/router/index.ts`
+  - 组件：`components/BlogEditor/index.tsx`、`components/BlogEditor/index.module.scss`
+  - 组件：`components/BlogDetail/index.tsx`、`components/BlogDetail/index.module.scss`
+  - 工具：`utils/blog.ts`、`api/blog.ts`、`utils/image.ts`（重构）
+- **说明**: 新增个人博客功能，完整 CRUD + 留言板 + 点赞：
+  - **路由设计**（禁止使用 &lt;component&gt; 动态组件，采用独立路由）：
+    - `/blog` → BlogView 文章列表
+    - `/blog/detail?id=xxx` → BlogDetail 详情+留言+点赞
+    - `/blog/edit` → BlogEditor 新建文章
+    - `/blog/edit?id=xxx` → BlogEditor 编辑文章
+  - **编辑器**：@toast-ui/editor（浅色主题、Markdown、垂直预览）
+  - **图片方案**：addImageBlobHook → compressBlogImage 压缩至 ≤500KB/张 → base64 内嵌 Markdown（不使用图片路径）
+  - **大小限制**：单篇文章 ≤5MB（前端 checkSize + 后端 DTO 双重校验）
+  - **修改=新版本**：update() 清空 comments[]、likeCount 归零、viewCount 保留
+  - **点赞去重**：comments 数组中存特殊标记 `__like__`
+  - **通用工具提取**到 `utils/blog.ts`：extractTitle / extractPreview / getHtmlContent / checkSize / filterRealComments
+- **依赖安装**：`cd src/frontend && pnpm add @toast-ui/editor && pnpm add -D @types/codemirror`
+
+### 2026-06-05 - 首页改版 + HomeView 路由重构
+- **涉及文件**: `frontend/src/router/index.ts`、`frontend/src/views/HomeView.tsx`、`views/HomeView.module.scss`
+- **说明**:
+  - 移除 `&lt;component is={...}&gt;` 动态组件方式，ai-prompt 改为独立路由新开页
+  - HomeView 改为纯欢迎页：导航栏 + "小月亮观景台"月空主题欢迎区 + 功能入口卡片
+  - 功能卡片点击通过 `router.push()` 跳转独立页面
+  - SCSS 主题设计：深夜蓝背景 `#0a0e1a`、毛玻璃导航栏、🌙 月亮装饰动画、星星闪烁
+
 ### 2026-06-01 - 用户名可编辑（唯一性约束）
 - **涉及文件**: `user/user.entity.ts`、`auth/dto/index.ts`、`auth/auth.service.ts`、`auth/auth.controller.ts`、`frontend/src/api/auth.ts`、`frontend/src/views/ProfileView.tsx`
 - **说明**:
@@ -46,7 +75,17 @@
 
 ## 二、架构变更记录
 
-*(暂无)*
+### 2026-06-05 - 组件拆分规范：views 仅做入口，业务组件放 components/
+- **背景**: BlogView.tsx 原始 497 行包含列表+编辑器+详情三个视图，违反单一职责
+- **新规范**:
+  - **views/** — 仅放页面级入口（如 BlogView 仅保留列表），复杂功能拆到独立路由
+  - **components/xxx/** — 一个文件夹一个组件，含 `index.tsx` + `index.module.scss`
+  - **utils/xxx.ts** — 跨组件复用的通用工具函数（如 blog.ts）
+- **禁止**: 使用 `&lt;component is={...}&gt;` 或 `components: { Xxx }` 注册后动态引用
+- **推荐**:
+  - 独立路由 + query 参数传递 id（如 `/blog/edit?id=1`）
+  - 子路由 + &lt;RouterView /&gt; 渲染
+  - 函数式按需加载（defineAsyncComponent / 条件 import）
 
 ---
 

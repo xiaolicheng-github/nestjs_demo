@@ -1,0 +1,106 @@
+.editorPage {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+.editorToolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.btnBack {
+  padding: 8px 18px;
+  background: #f5f6fa;
+  color: #555;
+  border: 1px solid #dddfe6;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #eceef3;
+    color: #333;
+  }
+}
+
+.publicToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  color: #666;
+  cursor: pointer;
+
+  input[type='checkbox'] {
+    accent-color: #667eea;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.btnSave {
+  padding: 8px 22px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s;
+  margin-left: auto;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.35);
+    transform: translateY(-1px);
+  }
+
+  &.btnSaving {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.editorWrapper {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #dddfe6;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.editorBox {
+  min-height: 520px;
+}
+
+// toast-ui 浅色主题微调
+:global {
+  .toastui-editor-defaultUI {
+    border: none !important;
+    border-radius: 0 !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .editorPage {
+    padding: 16px 12px;
+  }
+
+  .editorToolbar {
+    flex-wrap: wrap;
+  }
+
+  .btnSave {
+    margin-left: 0;
+    width: 100%;
+  }
+}

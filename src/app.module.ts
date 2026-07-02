@@ -6,6 +6,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
+import { BlogModule } from './blog/blog.module';
 import { CustomThrottlerGuard } from './common/throttler.guard';
 
 @Module({
@@ -20,6 +21,7 @@ import { CustomThrottlerGuard } from './common/throttler.guard';
     }),
     UserModule,
     AuthModule,
+    BlogModule,
   ],
   controllers: [AppController],
   // 注册自定义限流守卫，供 main.ts 全局使用

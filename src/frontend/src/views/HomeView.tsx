@@ -1,47 +1,46 @@
-import { defineComponent, computed } from 'vue';
-import { useRouter, useRoute, RouterView } from 'vue-router';
+import { defineComponent } from 'vue';
+import { useRouter } from 'vue-router';
 import { useUserStore } from '@/stores/user';
 import styles from './HomeView.module.scss';
 
-/** 功能菜单项 */
-interface MenuItem {
+/** 功能入口卡片 */
+interface FeatureCard {
   key: string;
+  path: string;
   label: string;
   icon: string;
   desc: string;
+  gradient: string;
 }
+
+const FEATURE_LIST: FeatureCard[] = [
+  {
+    key: 'ai-prompt',
+    path: '/ai-prompt',
+    label: 'AI 提示词生成器',
+    icon: '🤖',
+    desc: '填写条件，自动组装高效 Prompt',
+    gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  },
+  {
+    key: 'blog',
+    path: '/blog',
+    label: '个人博客',
+    icon: '🌙',
+    desc: '在月光下记录你的思绪与故事',
+    gradient: 'linear-gradient(135deg, #1a237e 0%, #4a148c 50%, #880e4f 100%)',
+  },
+];
 
 export default defineComponent({
   name: 'HomeView',
   setup() {
     const router = useRouter();
-    const route = useRoute();
     const userStore = useUserStore();
 
-    /** 当前激活的菜单 key（从路由路径提取） */
-    const activeMenu = computed(() => {
-      // 取路由 path 的最后一段作为菜单 key，如 /ai-prompt → ai-prompt
-      const segments = route.path.split('/').filter(Boolean);
-      return segments[segments.length - 1] || '';
-    });
-
-    /** 从路由配置派生菜单列表 */
-    const menuList = computed<MenuItem[]>(() => {
-      // 获取当前路由的 children 配置
-      const record = route.matched[0];
-      if (!record?.children) return [];
-      return record.children.map((child) => ({
-        key: child.path,
-        label:
-          (child.meta?.label as string) || (child.name as string) || child.path,
-        icon: (child.meta?.icon as string) || '📋',
-        desc: (child.meta?.desc as string) || '',
-      }));
-    });
-
-    /** 切换菜单：通过路由导航 */
-    function switchMenu(key: string) {
-      void router.push(`/${key}`);
+    /** 跳转功能页面（新标签页） */
+    function goFeature(path: string) {
+      window.open(path, '_blank');
     }
 
     /** 退出登录 */
@@ -62,9 +61,8 @@ export default defineComponent({
 
     return {
       userStore,
-      activeMenu,
-      menuList,
-      switchMenu,
+      FEATURE_LIST,
+      goFeature,
       handleLogout,
       goChangePassword,
       goProfile,
@@ -102,36 +100,57 @@ export default defineComponent({
           </div>
         </header>
 
-        {/* 主体：左侧功能导航 + 右侧内容区 */}
-        <main class={styles.mainLayout}>
-          {/* 左侧功能导航 */}
-          <aside class={styles.sidebar}>
-            <h3 class={styles.sidebarTitle}>功能面板</h3>
-            <nav class={styles.menu}>
-              {this.menuList.map((item) => (
-                <div
-                  key={item.key}
-                  class={[
-                    styles.menuItem,
-                    this.activeMenu === item.key ? styles.menuItemActive : '',
-                  ].join(' ')}
-                  onClick={() => this.switchMenu(item.key)}
-                >
-                  <span class={styles.menuIcon}>{item.icon}</span>
-                  <div class={styles.menuInfo}>
-                    <span class={styles.menuLabel}>{item.label}</span>
-                    <span class={styles.menuDesc}>{item.desc}</span>
-                  </div>
-                </div>
-              ))}
-            </nav>
-          </aside>
+        {/* 欢迎区域：月亮星空主题 */}
+        <section class={styles.heroSection}>
+          <div class={styles.moonDecor}>🌙</div>
+          {/* 星星装饰 */}
+          {Array.from({ length: 12 }).map((_, i) => (
+            <span
+              key={i}
+              class={styles.star}
+              style={{
+                left: `${10 + ((i * 7.5) % 85)}%`,
+                top: `${8 + ((i * 13) % 70)}%`,
+                animationDelay: `${(i * 0.4) % 3}s`,
+                fontSize: `${10 + (i % 3) * 4}px`,
+              }}
+            >
+              ✦
+            </span>
+          ))}
+          <div class={styles.heroContent}>
+            <h1 class={styles.heroTitle}>
+              欢迎来到<span class={styles.brandHighlight}>小月亮</span>观景台
+            </h1>
+            <p class={styles.heroSubtitle}>
+              在静谧的夜空下，探索无限可能。选择下方功能，开启你的创作之旅。
+            </p>
+          </div>
+        </section>
 
-          {/* 右侧内容区：使用 RouterView 渲染子路由 */}
-          <section class={styles.contentArea}>
-            <RouterView />
-          </section>
+        {/* 功能卡片网格 */}
+        <main class={styles.featureGrid}>
+          {this.FEATURE_LIST.map((item) => (
+            <div
+              key={item.key}
+              class={styles.featureCard}
+              style={{ '--card-gradient': item.gradient }}
+              onClick={() => this.goFeature(item.path)}
+            >
+              <span class={styles.cardIcon}>{item.icon}</span>
+              <div class={styles.cardInfo}>
+                <h3 class={styles.cardLabel}>{item.label}</h3>
+                <p class={styles.cardDesc}>{item.desc}</p>
+              </div>
+              <span class={styles.cardArrow}>→</span>
+            </div>
+          ))}
         </main>
+
+        {/* 页脚 */}
+        <footer class={styles.footer}>
+          <span>✦ 小月亮观景台 · 愿你每晚都有好风景 ✦</span>
+        </footer>
       </div>
     );
   },

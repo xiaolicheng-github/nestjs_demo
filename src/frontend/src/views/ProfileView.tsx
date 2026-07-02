@@ -1,7 +1,7 @@
 import { defineComponent, reactive, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { getFullProfileApi, updateProfileApi } from '@/api/auth';
-import { compressAvatar, getBase64Size } from '@/utils/image';
+import { compressBlogImage, getBase64Size } from '@/utils/image';
 import styles from './ProfileView.module.scss';
 
 export default defineComponent({
@@ -58,7 +58,7 @@ export default defineComponent({
         const base64DataUrl = reader.result as string;
         try {
           // 压缩到 ≤10KB
-          const compressed = await compressAvatar(base64DataUrl);
+          const compressed = await compressBlogImage(base64DataUrl);
           const sizeKb = Math.round(getBase64Size(compressed) / 1024);
 
           if (getBase64Size(compressed) > 10 * 1024) {

@@ -57,9 +57,9 @@ export class EmailService {
 
     try {
       await this.transporter.sendMail({
-        from: `"NestJS Demo" ${this.configService.get<string>('app.qqEmail')}`,
+        from: `"小月亮观景台" ${this.configService.get<string>('app.qqEmail')}`,
         to: email,
-        subject: '【NestJS Demo】注册验证码',
+        subject: '【小月亮观景台】注册验证码',
         html: `
           <div style="padding:20px;background:#f5f5f5;border-radius:8px;">
             <h2 style="color:#333;">您好！</h2>
@@ -107,9 +107,9 @@ export class EmailService {
 
     try {
       await this.transporter.sendMail({
-        from: `"NestJS Demo" ${this.configService.get<string>('app.qqEmail')}`,
+        from: `"小月亮观景台" ${this.configService.get<string>('app.qqEmail')}`,
         to: email,
-        subject: '【NestJS Demo】密码重置验证码',
+        subject: '【小月亮观景台】密码重置验证码',
         html: `
           <div style="padding:20px;background:#f5f5f5;border-radius:8px;">
             <h2 style="color:#333;">您好！</h2>
